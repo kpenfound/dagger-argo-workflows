@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: dagger-in-argo-
+spec:
+  entrypoint: dagger-test
+  volumes:
+    # - name: dagger-test
+    #   configMap:
+    #     name: dagger-test
+    - name: dagger-conn
+      hostPath:
+        path: /var/run/dagger
+  templates:
+    - name: dagger-test
+      container:
+        image: golang:1.21.0-bookworm
+        command: ["sh", "-c"]
+        args: ["
+apt-get update -y &&
+apt-get install -y wget git &&
+
+cd /tmp &&
+wget https://github.com/dagger/dagger/releases/download/v0.8.4/dagger_v0.8.4_linux_arm64.tar.gz -O dagger.tar.gz &&
+tar -xf dagger.tar.gz &&
+mv dagger /usr/local/bin/dagger &&
+cd /work &&
+
+git clone https://github.com/kpenfound/greetings-api.git &&
+cd greetings-api &&
+
+dagger run go run ./ci ci"]
+        workingDir: /work
+        env:
+        - name: "_EXPERIMENTAL_DAGGER_RUNNER_HOST"
+          value: "unix:///var/run/buildkit/buildkitd.sock"
+        - name: "_EXPERIMENTAL_DAGGER_CLOUD_TOKEN"
+          valueFrom:
+            secretKeyRef:
+              name: dagger-cloud
+              key: token
+        volumeMounts:
+          # - name: dagger-test
+          #   mountPath: /work
+          - name: dagger-conn
+            mountPath: /var/run/buildkit
