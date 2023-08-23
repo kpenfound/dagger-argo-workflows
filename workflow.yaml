@@ -3,7 +3,7 @@ kind: Workflow
 metadata:
   generateName: dagger-in-argo-
 spec:
-  entrypoint: dagger-test
+  entrypoint: dagger-workflow
   volumes:
     - name: dagger-conn
       hostPath:
@@ -12,7 +12,7 @@ spec:
       persistentVolumeClaim:
         claimName: gomod-cache
   templates:
-    - name: dagger-test
+    - name: dagger-workflow
       inputs:
         artifacts:
           - name: project-source
@@ -24,7 +24,7 @@ spec:
             path: /usr/local/bin
             mode: 0755
             http:
-              url: https://github.com/dagger/dagger/releases/download/v0.8.4/dagger_v0.8.4_linux_arm64.tar.gz
+              url: https://github.com/dagger/dagger/releases/download/v0.8.4/dagger_v0.8.4_linux_amd64.tar.gz
       container:
         image: golang:1.21.0-bookworm
         command: ["sh", "-c"]
